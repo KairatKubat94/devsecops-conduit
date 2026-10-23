@@ -21,9 +21,6 @@ ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
 ENV PYTHONPATH="/app"
 
-ARG APP_REVISION=unknown
-ENV APP_REVISION=${APP_REVISION}
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -35,14 +32,18 @@ RUN pip install --no-cache-dir /wheels/*
 
 COPY . ./
 
-RUN chmod +x /app/scripts/docker-entrypoint.sh \
-    && chown -R app:app /app
+RUN chmod +x /app/scripts/docker-entrypoint.sh
 USER app
 
-EXPOSE 8080
+ARG APP_REVISION=dev
+ENV APP_REVISION=${APP_REVISION}
+ENV UVICORN_HOST=0.0.0.0
+ENV UVICORN_PORT=8000
+
+EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8080/api/health-check || exit 1
+    CMD curl -f http://127.0.0.1:${UVICORN_PORT}/api/health-check || exit 1
 
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
-CMD ["uvicorn", "conduit.app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "conduit.app:app"]

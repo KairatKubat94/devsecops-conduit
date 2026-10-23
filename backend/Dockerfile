@@ -21,6 +21,9 @@ ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
 ENV PYTHONPATH="/app"
 
+ARG APP_REVISION=unknown
+ENV APP_REVISION=${APP_REVISION}
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
